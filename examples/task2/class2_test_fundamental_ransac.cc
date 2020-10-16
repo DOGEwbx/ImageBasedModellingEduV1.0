@@ -177,9 +177,10 @@ std::vector<int> find_inliers(sfm::Correspondences2D2D const & matches
 int main(int argc, char *argv[]){
 
     /** 加载归一化后的匹配对 */
-    sfm::Correspondences2D2D corr_all;// comment 这是一个C2D2D的vector
-    std::ifstream in("./examples/task2/correspondences.txt");
-    assert(in.is_open());
+    sfm::Correspondences2D2D corr_all;
+    // comment 这是一个C2D2D的vector
+    std::ifstream in("/home/bravery//CLionProjects/ImageBasedModellingEduV1.0/examples/task2/correspondences.txt");
+    //assert(in.is_open());
 
     std::string line, word;
     int n_line = 0;
@@ -189,6 +190,7 @@ int main(int argc, char *argv[]){
         if(n_line==0){
             int n_corrs = 0;
             stream>> n_corrs;
+            std::cout << n_corrs;
             corr_all.resize(n_corrs);
 
             n_line ++;
@@ -259,7 +261,7 @@ int main(int argc, char *argv[]){
     for(int i=0; i< best_inliers.size(); i++){
         corr_f.push_back(corr_all[best_inliers[i]]);
     }
-
+    std::cout<<"reached 1\n";
     /*利用所有的内点进行最小二乘估计*/
     FundamentalMatrix F;
     calc_fundamental_least_squares(corr_f, F);
