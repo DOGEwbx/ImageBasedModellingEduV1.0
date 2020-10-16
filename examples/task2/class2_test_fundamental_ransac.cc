@@ -30,7 +30,7 @@ typedef math::Matrix<double, 3, 3> FundamentalMatrix;
  *                          log(1-z)
  *       需要的采样次数 M = -----------
  *                          log(1-p^K)
- * Example: For p = 50%, z = 99%, n = 8: M = log(0.001) / log(0.99609) = 1176.
+ * Example: For p = 50%, z = 99%, K = 8: M = log(0.001) / log(0.99609) = 1176.
  * 需要采样1176次从而保证RANSAC的成功率不低于0.99.
  * @return
  */
@@ -70,7 +70,7 @@ double  calc_sampson_distance (FundamentalMatrix const& F, sfm::Correspondence2D
     return p2_F_p1 / sum;
 }
 /**
- * \description 8点发估计相机基础矩阵
+ * \description 8点法估计相机基础矩阵
  * @param pset1 -- 第一个视角的特征点
  * @param pset2 -- 第二个视角的特征点
  * @return 估计的基础矩阵
@@ -122,6 +122,7 @@ void calc_fundamental_least_squares(sfm::Correspondences2D2D const & matches, Fu
     if (matches.size() < 8)
         throw std::invalid_argument("At least 8 points required");
     /* Create Nx9 matrix A. Each correspondence creates on row in A. */
+    //comment 直接先写成一行一列，之后再变形状
     std::vector<double> A(matches.size() * 9);
     for (std::size_t i = 0; i < matches.size(); ++i)
     {
@@ -176,7 +177,7 @@ std::vector<int> find_inliers(sfm::Correspondences2D2D const & matches
 int main(int argc, char *argv[]){
 
     /** 加载归一化后的匹配对 */
-    sfm::Correspondences2D2D corr_all;
+    sfm::Correspondences2D2D corr_all;// comment 这是一个C2D2D的vector
     std::ifstream in("./examples/task2/correspondences.txt");
     assert(in.is_open());
 
@@ -218,7 +219,7 @@ int main(int argc, char *argv[]){
     for(int i=0; i<n_iterations; i++){
 
         /* 1.0 随机找到8对不重复的匹配点 */
-        std::set<int> indices;
+        std::set<int> indices;// comment 用set来保证匹配点是不重复的
         while(indices.size()<8){
             indices.insert(util::system::rand_int() % corr_all.size());
         }
@@ -227,7 +228,7 @@ int main(int argc, char *argv[]){
         std::set<int>::const_iterator iter = indices.cbegin();
         for(int j=0; j<8; j++, iter++){
             sfm::Correspondence2D2D const & match = corr_all[*iter];
-
+            //comment 取一对匹配点
             pset1(0, j) = match.p1[0];
             pset1(1, j) = match.p1[1];
             pset1(2, j) = 1.0;
@@ -243,7 +244,7 @@ int main(int argc, char *argv[]){
 
         /*3.0 统计所有的内点个数*/
         std::vector<int> inlier_indices = find_inliers(corr_all, F, inlier_thresh);
-
+        // comment 记录内点个数最多的
         if(inlier_indices.size()> best_inliers.size()){
 
 //            std::cout << "RANSAC-F: Iteration " << i
@@ -253,7 +254,7 @@ int main(int argc, char *argv[]){
             best_inliers.swap(inlier_indices);
         }
     }
-
+    // comment 把最好情况下的所有内点作为匹配点，进行最小二乘估计
     sfm::Correspondences2D2D corr_f;
     for(int i=0; i< best_inliers.size(); i++){
         corr_f.push_back(corr_all[best_inliers[i]]);
